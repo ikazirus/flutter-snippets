@@ -1,0 +1,44 @@
+ futureProData(File imageFile, String name, BuildContext context) async {
+    var stream = new http.ByteStream(DelegatingStream(imageFile.openRead()));
+    var length = await imageFile.length();
+    var uri = Uri.parse(baseUrl + "RupaPalapala");
+
+    var request = new http.MultipartRequest("POST", uri);
+    var multipartFile = new http.MultipartFile("photo", stream, length,
+        filename: basename(imageFile.path));
+
+    request.files.add(multipartFile);
+    request.fields['name'] = name;
+    request.fields['tel'] = phoneNum;
+
+    await request.send().then((response) async {
+      // listen for response
+      String value = await response.stream.transform(utf8.decoder).first;
+      print(value);
+      var x;
+      try {
+        x = RupapalapalaResult.fromJson(json.decode(value));
+
+        lips = x.lip;
+        eye = x.eyes;
+        nose = x.nose;
+        state = AppStateRP.result;
+        setState(() {});
+      } catch (e) {
+        ///TODO
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => RPERR(
+              msg: value,
+            ),
+          ),
+        );
+        // networkErrorDialog(
+        //   context,
+        // );
+      }
+    }).catchError((e) {
+      print(e);
+    });
+  }
